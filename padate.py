@@ -1,7 +1,8 @@
-try:
+
+def main ():
       import sys, argparse, re, time
 
-      def assertPositiveInt (value: int) -> int:
+      def assertPositiveInt (value: str) -> int:
             try:
                   value = int(value)
             except ValueError:
@@ -10,12 +11,24 @@ try:
                   raise argparse.ArgumentTypeError(f'{value} must be a positive int value.')
             return value
 
+      def assertThresholdArg (value: str) -> float:
+            try:
+                  value = float(value)
+            except ValueError:
+                  raise argparse.ArgumentTypeError(f'{value} must be a strictly positive float value.')
+            if value <= 0:
+                  raise argparse.ArgumentTypeError(f'{value} must be a strictly positive float value.')
+            return value
+
       parser = argparse.ArgumentParser(description='''Checks a website continuously for updates and notifies the user when one occurs.''')
       parser.add_argument('url', type= str, help= 'the url of the website to check')
-      parser.add_argument('-t' , '--time', type= assertPositiveInt, help= 'the delay, in seconds, after every check. The default is 5 seconds.', default= 5)
-      parser.add_argument('-q', '--quiet', action= 'store_true', help= 'notify the user ONLY about/when a change occurs')
+      parser.add_argument('-l', '--level', type= assertPositiveInt, help= 'checking level; 0 means only checking the supplied url, 1 means checking the supplied websites\' url and all of the urls that it has (such as links) and so on. The default is 0', default= 0)
+      parser.add_argument('-t', '--threshold', type= assertThresholdArg, help= 'the threshold of change upon which the user is notified. It "can range" from 0+ to infinity. The default is 5 (percent)', default= 5)
+      parser.add_argument('-d' , '--delay', type= assertPositiveInt, help= 'the delay, in seconds, after every check. The default is 5 seconds', default= 5)
+      parser.add_argument('-q', '--quiet', action= 'store_true', help= 'notify the user only about/when a change occurs')
 
       args = parser.parse_args()
+
 
       try:
             import requests
@@ -25,6 +38,7 @@ try:
             import regex
       except ImportError:
             sys.exit('The regex package is missing.. Please consult the README file')
+
 
       def cleanContent (content: str) -> str:
             match = re.search(r'<\s*?body(.|\s)*?>(.|\s)*?<\s*?\/\s*?body\s*?>', content) # <body> ... </body>
@@ -60,7 +74,7 @@ try:
 
                   if not response.headers['Content-Type'].startswith('text/html'):
                         if assertion_flag:
-                              sys.exit('This page: '+ url +' has changed its content format, rendering it unable to be read') # TODO: use formater
+                              sys.exit('This page: '+ url +' has changed its content format, rendering it unable to be read') # TODO: use formatter
                         else:
                               return None
 
@@ -72,20 +86,22 @@ try:
             except requests.exceptions.ConnectionError:
                   return None if not assertion_flag else sys.exit('Unable to connect to: '+ url)
             except requests.exceptions.RequestException as e:
-                  return None if not assertion_flag else sys.exit('Connection error occured while trying to connect to: ' +url +'\nError: ' +type(e).__name__)
+                  return None if not assertion_flag else sys.exit('Connection error occurred while trying to connect to: ' +url +'\nError: ' +type(e).__name__)
 
-      def getAnchorsContent (content: str) -> dict:
+      def addAnchorsContent (content: str, contents: dict) -> bool:
             urls = regex.findall(r'(?<=<\s*?a[.\s]*?href\s*?=\s*?").*?(?=")', content)
             if not urls:
-                  return {}
+                  return False
 
-            contents = {}
+            added = False
             for url in urls:
                   if url not in contents.keys():
                         anchor_content = getContent(url, False)
                         if anchor_content:
                               contents [url] = anchor_content
-            return contents
+                              added = True
+            return added
+
 
       def compareWord (old_word: str, new_word: str) -> str:
             difference = 0
@@ -148,20 +164,22 @@ try:
                   return difference / len(new_content)
             """
 
-      if not args.quiet:
-                  print('Checking', args.url, '...')
+
+      print('Pinging', args.url, '...')
 
       main_content = getContent(args.url, True)
       contents = {args.url: main_content}
-      for url, content in getAnchorsContent(main_content).items():
-            contents [url] = content
 
-      PING_DELAY = args.time
+      for _ in range (args.level): # TODO: a better solution, also a one that allows infinite depth
+            for content in contents.copy().values():
+                  addAnchorsContent(content, contents)
 
-      if not args.quiet:
-            print(f'Checking {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]} {["continuously", "every second", "every " +str(PING_DELAY) +" seconds"][(PING_DELAY != 0) + ((PING_DELAY != 0) * (PING_DELAY != 1))]}:')
-            for url in contents.keys():
-                  print('\t->', url)
+
+      PING_DELAY = args.delay
+
+      print(f'Checking {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]} {["continuously", "every second", "every " +str(PING_DELAY) +" seconds"][(PING_DELAY != 0) + ((PING_DELAY != 0) * (PING_DELAY != 1))]}:')
+      for url in contents.keys():
+            print('\t->', url)
 
       while True:
             if not args.quiet:
@@ -173,14 +191,16 @@ try:
                   total_difference = total_difference +difference
 
                   if not args.quiet:
-                        print('\t',url,'->', str(difference) +'%', 'difference.')
+                        print('\t',url,'->', str(difference *100) +'%', 'difference.')
             
             total_difference = total_difference / len(contents)
+            total_difference = total_difference * 100
             if not args.quiet:
-                  print('\t',str(total_difference) +'%', 'total difference.')
+                  print('\n\t->',str(total_difference) +'%', 'total difference.')
             
-            if total_difference > 0.05:
-                  print(f'\nA change of {total_difference}% occured in {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]}:')
+            if total_difference >= args.threshold:
+                  print('\a')
+                  print(f'\nA total change of {total_difference}% occurred in {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]}:')
                   for url in contents.keys():
                         print('\t->', url)
 
@@ -189,5 +209,8 @@ try:
             time.sleep(PING_DELAY)
 
 
-except KeyboardInterrupt:
-      sys.exit(0)
+if __name__ == '__main__':
+      try:
+            main()
+      except KeyboardInterrupt:
+            print('Terminating')
