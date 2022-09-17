@@ -26,6 +26,7 @@ def main ():
       parser.add_argument('-t', '--threshold', type= assertThresholdArg, help= 'the threshold of change upon which the user is notified. It "can range" from 0+ to infinity. The default is 5 (percent)', default= 5)
       parser.add_argument('-d' , '--delay', type= assertPositiveInt, help= 'the delay, in seconds, after every check. The default is 5 seconds', default= 5)
       parser.add_argument('-q', '--quiet', action= 'store_true', help= 'notify the user only about/when a change occurs')
+      parser.add_argument('-i', '--ignore', type= str, nargs= '+', help= 'websites to ignore by default. Default includes: facebook, google and twitter', default= ['facebook', 'google', 'twitter'])
 
       args = parser.parse_args()
 
@@ -88,6 +89,12 @@ def main ():
             except requests.exceptions.RequestException as e:
                   return None if not assertion_flag else sys.exit('Connection error occurred while trying to connect to: ' +url +'\nError: ' +type(e).__name__)
 
+      def isIgnored (url: str) -> bool:
+            for ignored in args.ignore:
+                  if url.find(ignored) != -1:
+                        return True
+            return False
+
       def addAnchorsContent (content: str, contents: dict) -> bool:
             urls = regex.findall(r'(?<=<\s*?a[.\s]*?href\s*?=\s*?").*?(?=")', content)
             if not urls:
@@ -95,7 +102,7 @@ def main ():
 
             added = False
             for url in urls:
-                  if url not in contents.keys():
+                  if url not in contents.keys() and not isIgnored(url):
                         anchor_content = getContent(url, False)
                         if anchor_content:
                               contents [url] = anchor_content
