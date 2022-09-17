@@ -66,28 +66,24 @@ def main ():
 
             return content
 
-      def getContent (url: str, assertion_flag: bool= True) -> str:
+      def getContent (url: str) -> str:
             if not url.startswith('http://') and not url.startswith('https://'):
                   url = 'http://' +url
 
             try:
                   response = requests.get(url)
 
+                  if response.status_code != 200:
+                        return None
+
                   if not response.headers['Content-Type'].startswith('text/html'):
-                        if assertion_flag:
-                              sys.exit('This page: '+ url +' has changed its content format, rendering it unable to be read') # TODO: use formatter
-                        else:
-                              return None
+                        return None
 
                   content = cleanContent(response.text)
-                  if assertion_flag and not content:
-                        sys.exit('This page: '+ url +' has changed its content format, rendering it unable to be read')
                   return content
 
-            except requests.exceptions.ConnectionError:
-                  return None if not assertion_flag else sys.exit('Unable to connect to: '+ url)
-            except requests.exceptions.RequestException as e:
-                  return None if not assertion_flag else sys.exit('Connection error occurred while trying to connect to: ' +url +'\nError: ' +type(e).__name__)
+            except requests.exceptions.RequestException:
+                  return None
 
       def isIgnored (url: str) -> bool:
             for ignored in args.ignore:
@@ -103,7 +99,7 @@ def main ():
             added = False
             for url in urls:
                   if url not in contents.keys() and not isIgnored(url):
-                        anchor_content = getContent(url, False)
+                        anchor_content = getContent(url)
                         if anchor_content:
                               contents [url] = anchor_content
                               added = True
@@ -174,7 +170,9 @@ def main ():
 
       print('Pinging', args.url, '...')
 
-      main_content = getContent(args.url, True)
+      main_content = getContent(args.url)
+      if not main_content:
+            sys.exit(f'Unable to reach/read {args.url}')
       contents = {args.url: main_content}
 
       for _ in range (args.level): # TODO: a better solution, also a one that allows infinite depth
@@ -194,11 +192,18 @@ def main ():
             
             total_difference = 0
             for url, content in contents.items():
-                  difference = compareContent(content, getContent(url, True))
-                  total_difference = total_difference +difference
 
-                  if not args.quiet:
-                        print('\t',url,'->', str(difference *100) +'%', 'difference.')
+                  new_content = getContent(url)
+                  if new_content:
+                        difference = compareContent(content, new_content)
+                        total_difference = total_difference +difference
+
+                        if not args.quiet:
+                              print('\t',url,'->', str(difference *100) +'%', 'difference.')
+                  else:
+                        if not args.quiet:
+                              print('\t',url,'-> failed to reach/read.')
+
             
             total_difference = total_difference / len(contents)
             total_difference = total_difference * 100
