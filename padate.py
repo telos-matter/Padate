@@ -79,11 +79,16 @@ def main ():
                   if not response.headers['Content-Type'].startswith('text/html'):
                         return None
 
-                  content = cleanContent(response.text)
-                  return content
+                  return cleanContent(response.text)
 
             except requests.exceptions.RequestException:
                   return None
+
+      def isIgnored (url: str) -> bool:
+            for ignored in args.ignore:
+                  if url.find(ignored) != -1:
+                        return True
+            return False
 
       def isIgnored (url: str) -> bool:
             for ignored in args.ignore:
