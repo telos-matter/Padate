@@ -6,21 +6,21 @@ A utility python script that checks a website continuously for updates and notif
 ### Example:
 Let's say you want to be the first to see PewDiePies' newest video:
 1. Copy the channel link
-2. Open up your command line / terminal and run the following
-3. python path_to_padate.py https://www.youtube.com/PewDiePie
+2. Open up your command line / terminal
+3. Run the following: `python path_to_padate.py https://www.youtube.com/PewDiePie`
 
 And that's it! Leave the script running in the background and it would notify you with a *ding* sound once a change occurs.
 
 You can tweak certain options before running the script, such as:
 * How fast should the script check:
-	>  python path_to_padate.py url_to_check.com -d 0
+	`python path_to_padate.py url_to_check.com -d 0`
 * How deep should the script check:
-	> python path_to_padate.py url_to_check.com -l 1
+	`python path_to_padate.py url_to_check.com -l 1`
 * Websites to ignore (useful when the website you are interested in has links to other websites:
-	> python path_to_padate.py url_to_check.com -i facebook twitter
+	`python path_to_padate.py url_to_check.com -i facebook twitter`
 
 and others.. Use help for more informations:
-> python path_to_padate.py -h
+`python path_to_padate.py -h`
 
 You can always quit the script with command +c (for Mac Os) or ctrl +c (for Windows)
 
@@ -30,13 +30,13 @@ You can always quit the script with command +c (for Mac Os) or ctrl +c (for Wind
 * The package regex  2022.9.13 +
 ### How-to:
 You can make sure you have python 3 and above by running:
-> python --version
+`python --version`
 
 Make sure you have pip installed (or any python package manager), and run the following in your command line/terminal:
-> pip install requests
+`pip install requests`
 
 and
-> pip install regex 
+`pip install regex`
 
 If you don't have python or pip installed, then look it up online with your operating system specified.
 
