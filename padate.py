@@ -48,21 +48,25 @@ def main ():
 
             content = match.group()
 
-            for tag in ["class"]: # class=" ... "
+            for tag in ["class", "style", "id"]: # class=" ... "
                   regex = re.compile(tag +'\s*?=\s*?"(.|\s)*?"')
                   content = regex.sub('', content)
 
-            for tag in ["link"]: # <link ... >
+            for tag in ["link", "meta"]: # <link ... >
                   regex = re.compile('<\s*?' +tag +'(.|\s)*?>')
                   content = regex.sub('', content)
 
-            for tag in ["link"]: # <link ... />
+            for tag in ["link", "meta"]: # <link ... />
                   regex = re.compile('<\s*?' +tag +'(.|\s)*?\/\s*?>')
                   content = regex.sub('', content)
 
             for tag in ["script", "style", "link"]: # <script> ... </script>
                   regex = re.compile('<\s*?' +tag +'\s*?(.|\s)*?>(.|\s)*?<\s*?\/\s*?' +tag +'\s*?>')
                   content = regex.sub('', content)
+
+            content = re.sub(r'data\s*?\-(.|\s)*?=\s*?"(.|\s)*?"', '', content) # data-... ...= "..."
+            
+            content = re.sub(r'<\s*?input(.|\s)*?type\s*?=\s*?"hidden"(.|\s)*?>', '', content) # <input ... type= "hidden">
 
             return content
 
@@ -71,7 +75,8 @@ def main ():
                   url = 'http://' +url
 
             try:
-                  response = requests.get(url)
+                  headers = {"Accept-Language": "en"}
+                  response = requests.get(url, headers= headers)
 
                   if response.status_code != 200:
                         return None
@@ -171,7 +176,13 @@ def main ():
                               difference = difference +len(word)
                   return difference / len(new_content)
             """
+      """
+      """ # TODO: remove
+      with open("old.html", "w") as f:
+            f.write(getContent(args.url))
 
+      with open("new.html", "w") as f:
+            f.write(getContent(args.url))
 
       print('Pinging', args.url, '...')
 
