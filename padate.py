@@ -65,8 +65,8 @@ def main ():
                   content = regex.sub('', content)
 
             content = re.sub(r'data\s*?\-(.|\s)*?=\s*?"(.|\s)*?"', '', content) # data-... ...= "..."
-            
-            content = re.sub(r'<\s*?input(.|\s)*?type\s*?=\s*?"hidden"(.|\s)*?>', '', content) # <input ... type= "hidden">
+
+            content = re.sub(r'<\s*?input.*?type\s*?=\s*?"hidden".*?>', '', content, flags= re.S) # <input ... type= "hidden">
 
             return content
 
@@ -177,12 +177,12 @@ def main ():
                   return difference / len(new_content)
             """
       """
-      """ # TODO: remove
       with open("old.html", "w") as f:
             f.write(getContent(args.url))
 
       with open("new.html", "w") as f:
             f.write(getContent(args.url))
+      """ # TODO: remove
 
       print('Pinging', args.url, '...')
 
