@@ -1,4 +1,5 @@
-# Padate 
+<h1>Padate </h1>
+<b>Pa</b>ge Up<b>date</b>r <br> <br>
 
 A utility python script that checks a website continuously for updates and notifies the user when one occurs. Useful when waiting for school results, job opportunity or wanting to be first on an event...
 
@@ -39,8 +40,15 @@ If you don't have python or pip installed, then look it up online with your oper
 The script is not always reliable, as that not all pages follow an **exact** format. And it can also sometimes false trigger.. You can read more about why this happens on the technical part below.
 
 ### Technical part:
-Dev not smart
-Twitter's an ass
-><div ><a href="https://www.facebook.com/recover/initiate/?privacy_mutation_token=eyJ0eXBlIjowLCJjcmVhdGlvbl90aW1lIjoxNjYzNDYwMzQ4LCJjYWxsc2l0ZV9pZCI6MzgxMjI5MDc5NTc1OTQ2fQ%3D%3D&amp;ars=facebook_login">Mot de passe oublié ?</a></di
+Dev not smart.
 
- ><a href="https://www.facebook.com/recover/initiate/?privacy_mutation_token=eyJ0eXBlIjowLCJjcmVhdGlvbl90aW1lIjoxNjYzNDYwMzQ5LCJjYWxsc2l0ZV9pZCI6MzgxMjI5MDc5NTc1OTQ2fQ%3D%3D&amp;ars=facebook_login">Mot de passe oublié ?</a><
+Example of why its currently not working:
+
+<a href="https://www.facebook.com/recover/initiate/?privacy_mutation_token=eyJ0eXBlIjowLCJjcmVhdGlvbl90aW1lIjoxNjYzNDYwMzQ4LCJjYWxsc2l0ZV9pZCI6MzgxMjI5MDc5NTc1OTQ2fQ%3D%3D&amp;ars=facebook_login">Forgot password ?</a>
+
+ <a href="https://www.facebook.com/recover/initiate/?privacy_mutation_token=eyJ0eXBlIjowLCJjcmVhdGlvbl90aW1lIjoxNjYzNDYwMzQ5LCJjYWxsc2l0ZV9pZCI6MzgxMjI5MDc5NTc1OTQ2fQ%3D%3D&amp;ars=facebook_login">Forgot password ?</a>
+
+A little change in the url can result in a cascading effect while comparing the old and new content (that is with the current version of comparison, there are a lot BETTER alternative to the naive comparison that is currently implemented)
+
+## NOTICE 
+The current version as is does not work with youtube, the example wouldn't work (has to do with how Youtube send data)

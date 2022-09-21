@@ -26,7 +26,7 @@ def main ():
       parser.add_argument('-t', '--threshold', type= assertThresholdArg, help= 'the threshold of change upon which the user is notified. It "can range" from 0+ to infinity. The default is 5 (percent)', default= 5)
       parser.add_argument('-d' , '--delay', type= assertPositiveInt, help= 'the delay, in seconds, after every check. The default is 5 seconds', default= 5)
       parser.add_argument('-q', '--quiet', action= 'store_true', help= 'notify the user only about/when a change occurs')
-      parser.add_argument('-i', '--ignore', type= str, nargs= '+', help= 'websites to ignore by default. Default includes: facebook, google and twitter', default= ['facebook', 'google', 'twitter'])
+      parser.add_argument('-i', '--ignore', type= str, nargs= '+', help= 'websites to ignore by default. Default includes: facebook, google, twitter and youtube', default= ['facebook', 'google', 'twitter', 'youtube'])
 
       args = parser.parse_args()
 
@@ -220,7 +220,7 @@ def main ():
                         if not args.quiet:
                               print('\t',url,'-> failed to reach/read.')
 
-            
+            # TODO: bruh, inc with +=
             total_difference = total_difference / len(contents)
             total_difference = total_difference * 100
             if not args.quiet:
