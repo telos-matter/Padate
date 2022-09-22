@@ -20,7 +20,7 @@ You can tweak certain options before running the script, such as:
 * Websites to ignore (useful when the website you are interested in has links to other websites):
 	`python path_to_padate.py url_to_check.com -i facebook twitter`
 
-and others.. Use help for more informations:
+and others.. Use help for more information:
 `python path_to_padate.py -h`
 
 You can always quit the script with ctrl +c
