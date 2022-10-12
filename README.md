@@ -40,7 +40,7 @@ If you don't have python or pip installed, then look it up online with your oper
 The script is not always reliable, as that not all pages follow an **exact** format. And it can also sometimes false trigger.. You can read more about why this happens on the technical part below.
 
 ### Technical part:
-Dev not smart.
+Dev not smart. Rather don't have time for this project really
 
 Example of why its currently not working:
 

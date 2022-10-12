@@ -1,6 +1,6 @@
 
 def main ():
-      import sys, argparse, re, time
+      import sys, argparse, re, time, datetime
 
       def assertPositiveInt (value: str) -> int:
             try:
@@ -11,19 +11,10 @@ def main ():
                   raise argparse.ArgumentTypeError(f'{value} must be a positive int value.')
             return value
 
-      def assertThresholdArg (value: str) -> float:
-            try:
-                  value = float(value)
-            except ValueError:
-                  raise argparse.ArgumentTypeError(f'{value} must be a strictly positive float value.')
-            if value <= 0:
-                  raise argparse.ArgumentTypeError(f'{value} must be a strictly positive float value.')
-            return value
-
       parser = argparse.ArgumentParser(description='''Checks a website continuously for updates and notifies the user when one occurs.''')
       parser.add_argument('url', type= str, help= 'the url of the website to check')
       parser.add_argument('-l', '--level', type= assertPositiveInt, help= 'checking level; 0 means only checking the supplied url, 1 means checking the supplied websites\' url and all of the urls that it has (such as links) and so on. The default is 0', default= 0)
-      parser.add_argument('-t', '--threshold', type= assertThresholdArg, help= 'the threshold of change upon which the user is notified. It "can range" from 0+ to infinity. The default is 5 (percent)', default= 5)
+      parser.add_argument('-t', '--threshold', type= assertPositiveInt, help= 'the threshold of change upon which the user is notified. It "can range" from 0 to infinity. The default is 0 (percent), where the user is notified if any change occurs', default= 0)
       parser.add_argument('-d' , '--delay', type= assertPositiveInt, help= 'the delay, in seconds, after every check. The default is 5 seconds', default= 5)
       parser.add_argument('-q', '--quiet', action= 'store_true', help= 'notify the user only about/when a change occurs')
       parser.add_argument('-i', '--ignore', type= str, nargs= '+', help= 'websites to ignore by default. Default includes: facebook, google, twitter and youtube', default= ['facebook', 'google', 'twitter', 'youtube'])
@@ -176,6 +167,7 @@ def main ():
                               difference = difference +len(word)
                   return difference / len(new_content)
             """
+
       """
       with open("old.html", "w") as f:
             f.write(getContent(args.url))
@@ -226,9 +218,9 @@ def main ():
             if not args.quiet:
                   print('\n\t->',str(total_difference) +'%', 'total difference.')
             
-            if total_difference >= args.threshold:
+            if total_difference > args.threshold:
                   print('\a')
-                  print(f'\nA total change of {total_difference}% occurred in {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]}:')
+                  print(f'\nA total change of {total_difference}% occurred at {datetime.datetime.now()} in {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]}:')
                   for url in contents.keys():
                         print('\t->', url)
 
