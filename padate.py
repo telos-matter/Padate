@@ -220,7 +220,7 @@ def main ():
             
             if total_difference > args.threshold:
                   print('\a')
-                  print(f'\nA total change of {total_difference}% occurred at {datetime.datetime.now()} in {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]}:')
+                  print(f'\nA total change of {total_difference}% occurred at {datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")} in {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]}:')
                   for url in contents.keys():
                         print('\t->', url)
 
