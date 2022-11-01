@@ -17,6 +17,7 @@ def main ():
       parser.add_argument('-t', '--threshold', type= assertPositiveInt, help= 'the threshold of change upon which the user is notified. It "can range" from 0 to infinity. The default is 0 (percent), where the user is notified if any change occurs', default= 0)
       parser.add_argument('-d' , '--delay', type= assertPositiveInt, help= 'the delay, in seconds, after every check. The default is 5 seconds', default= 5)
       parser.add_argument('-q', '--quiet', action= 'store_true', help= 'notify the user only about/when a change occurs')
+      parser.add_argument('-c', '--crash', action= 'store_true', help= 'terminates the script if a website is unreachable or crashes')
       parser.add_argument('-i', '--ignore', type= str, nargs= '+', help= 'websites to ignore by default. Default includes: facebook, google, twitter and youtube', default= ['facebook', 'google', 'twitter', 'youtube'])
 
       args = parser.parse_args()
@@ -79,12 +80,6 @@ def main ():
 
             except requests.exceptions.RequestException:
                   return None
-
-      def isIgnored (url: str) -> bool:
-            for ignored in args.ignore:
-                  if url.find(ignored) != -1:
-                        return True
-            return False
 
       def isIgnored (url: str) -> bool:
             for ignored in args.ignore:
@@ -168,13 +163,9 @@ def main ():
                   return difference / len(new_content)
             """
 
-      """
-      with open("old.html", "w") as f:
-            f.write(getContent(args.url))
 
-      with open("new.html", "w") as f:
-            f.write(getContent(args.url))
-      """ # TODO: remove
+# -------------------------------------------------------------------
+
 
       print('Pinging', args.url, '...')
 
@@ -209,12 +200,15 @@ def main ():
                         if not args.quiet:
                               print('\t',url,'->', str(difference *100) +'%', 'difference.')
                   else:
-                        if not args.quiet:
+                        if args.crash:
+                              print('\n\n',url,'-> failed to reach/read.')
+                              print(f'\nTerminated at {datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")}')
+                              sys.exit(0)
+                        elif not args.quiet:
                               print('\t',url,'-> failed to reach/read.')
 
-            # TODO: bruh, inc with +=
-            total_difference = total_difference / len(contents)
-            total_difference = total_difference * 100
+            total_difference /= len(contents)
+            total_difference *= 100
             if not args.quiet:
                   print('\n\t->',str(total_difference) +'%', 'total difference.')
             
@@ -223,6 +217,7 @@ def main ():
                   print(f'\nA total change of {total_difference}% occurred at {datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")} in {["this", "these " +str(len(contents))][len(contents) != 1]} website{"s"[:len(contents) != 1]}:')
                   for url in contents.keys():
                         print('\t->', url)
+                  print('Terminating')
 
                   sys.exit(0)
 
