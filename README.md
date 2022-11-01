@@ -52,4 +52,4 @@ A little change in the url can result in a cascading effect while comparing the 
 
 ## NOTICE 
 The current version as is does not work with youtube, the example wouldn't work (has to do with how Youtube send data)
-PS: the code could do with some comments, lol
+PS: the code could do with some comments/cleaning, lol
