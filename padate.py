@@ -1,8 +1,32 @@
 #! /usr/bin/env python
 
 import requests
+import argparse
 from html.parser import HTMLParser
 from enum import Enum, auto
+
+arg_parser = argparse.ArgumentParser(
+    prog='Padate',
+    description='''Checks a website continuously for updates and notifies the user when one occurs.''',
+    epilog='https://github.com/telos-matter/Padate'
+    )
+
+def check_positive_int (value: str) -> int:
+    try:
+        if int(value) >= 0:
+            return value
+    except ValueError:
+        pass
+    raise argparse.ArgumentTypeError(f'{value} must be a positive integer value.')
+
+arg_parser.add_argument('url', type=str, help='the url of the website to watch / check.')
+arg_parser.add_argument('-p' , '--period', type=check_positive_int, help='the period, in seconds, to wait after each check. The default is 0 seconds.', default=0)
+arg_parser.add_argument('-q', '--quiet', action='store_true', help='notify the user only about and when a change occurs.')
+arg_parser.add_argument('-c', '--crash', action='store_true', help='halt the process if a website is unreachable or unable to be parsed.')
+arg_parser.add_argument('-d', '--depth', type=check_positive_int, help='how far deep should the links be followed and checked. 0 means only check the supplied url, 1 means check the supplied url and all of the links / urls that its page has, and so on. The default is 0.', default=0)
+arg_parser.add_argument('-i', '--ignore', type=str, nargs='+', help='websites to be ignored in the sub-links. Default websites are: facebook, google, twitter, x, youtube, and reddit', default= ['facebook', 'google', 'twitter', 'x', 'youtube', 'reddit'])
+
+# args = arg_parser.parse_args()
 
 URL = 'https://www.simpleweb.org/'
 
@@ -25,27 +49,27 @@ class Page (HTMLParser):
         'iframe',
     ]
     
-    def __init__(self, url: str, struct_tol: int=1) -> None:
+    def __init__(self, url: str, struct_tol: int=2) -> None:
         '''
         - `url`: the url of this page
-        - `struct_tol`: How tolerant or loose should the validity of the HTML structure be;
+        - `struct_tol`: How wrong can the HTML structure be and still tolerate it?
             - 0: no tolerance
             - 1: minor tolerance (paragraphs don't need to close for example)
             - 2: just parse it dude
         '''
         super().__init__(convert_charrefs=True)
         
-        self.url            = url   # The url of this page
-        self.valid_response = (False, 'Not yet parsed') # Have we gotten a valid response from this page? (Yes or No, Reason/Message)
+        self.url              = url   # The url of this page
+        self.valid_response   = (False, 'Not yet parsed.') # Have we gotten a valid response from this page? (Yes or No, Reason/Message)
         self.problems_counter = 0 # How many problems have been encountered when parsing, regardless of tolerance level
-        self.title          = None  # The pages' title
-        self.content        = []    # The pages' content in the order it is encountered in
+        self.title            = None # The pages' title
+        self.content          = [] # The pages' content in the order it is encountered in
         
         self.__struct_tol      = struct_tol # How tolerant are we with the structure of the page?
         self.__section_count   = 0 # How many sections have we seen so far?
         self.__current_section = None # Which section are we currently parsing?
         self.__current_tag     = None # Which tag are we currently parsing?
-        self.__tag_stack       = []   # A stack to handle nested tags
+        self.__tag_stack       = [] # A stack to handle nested tags
         
         # Make a request to the url
         response = requests.get(self.url)
@@ -61,7 +85,8 @@ class Page (HTMLParser):
                 self.valid_response = (False, str(e))
                 return
             # If all went well then the response was valid
-            self.valid_response = (True, 'All OK.')
+            msg = 'All OK.' if self.problems_counter == 0 else 'OK.'
+            self.valid_response = (True, msg)
     
     def handle_starttag(self, tag: str, _):
         '''Handle starting tags like `<p>`'''
@@ -79,7 +104,8 @@ class Page (HTMLParser):
             if self.__current_section is not None or self.__section_count != 1:
                 self.problems_counter += 1
                 if self.__struct_tol <= 1:
-                    raise Exception("Encountered <head> in an unexpected place")
+                    line, col = self.getpos()
+                    raise Exception(f"Was not expecting to encounter <head> here; line: {line}, col: {col}.")
             # Otherwise the current section is HEAD
             self.__current_section = Page.__HTMLSection.HEAD
             
@@ -91,7 +117,8 @@ class Page (HTMLParser):
             if self.__current_section is not None or self.__section_count != 2:
                 self.problems_counter += 1
                 if self.__struct_tol <= 1:
-                    raise Exception("Encountered <body> in an unexpected place")
+                    line, col = self.getpos()
+                    raise Exception(f"Was not expecting to encounter <body> here; line: {line}, col: {col}.")
             # Otherwise the current section is now BODY
             self.__current_section = Page.__HTMLSection.BODY
     
@@ -126,7 +153,7 @@ class Page (HTMLParser):
             # Then it's only a problem if struct_tol == 0
             if self.__struct_tol == 0:
                 line, col = self.getpos()
-                raise Exception(f"Closing a currently unopened tag <{tag}> at line: {line}, col: {col}")
+                raise Exception(f"Closing a currently unopened tag <{tag}> at line: {line}, col: {col}.")
             # Otherwise
             else:
                 # If it exists, close latest
@@ -156,10 +183,8 @@ class Page (HTMLParser):
         # Case it's BODY
         elif self.__current_section is Page.__HTMLSection.BODY:
             # If the current_tag is not invisible, then it's content
-            if self.__current_tag not in Page.__INVISIBLE_BODY_TAGS:
+            if self.__current_tag not in Page.__INVISIBLE_BODY_TAGS and not data.isspace():
                 self.content.append(data)
-        
-        # print("Encountered some data  :", data)
 
 page = Page(URL)
 print(page.valid_response)
