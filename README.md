@@ -3,7 +3,7 @@
 
 A utility python script that checks a website periodically for updates and notifies the user when one occurs.
 
-Useful when waiting for some results, new posts, or wanting to be first on an event for example...
+Useful when waiting for results, new posts, or wanting to be first on an event for example...
 
 ## Example:
 Supposedly you want to be notified when I add a new repository to my github account, you'd simply copy the link and run [padate.py](padate.py) with the link as an argument, like so:
